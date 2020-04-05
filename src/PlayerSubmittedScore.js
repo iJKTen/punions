@@ -2,11 +2,10 @@ const AWS = require('aws-sdk');
 const documentClient = new AWS.DynamoDB.DocumentClient();
 
 exports.handler = async (event) => {
-    
     let updateScore = true;
     const {
         pathParameters: { publicGameId }
-    } = event; // Extracting an id from the request path
+    } = event;
     
     const { scoringPlayerId, scoreForPlayerId, cardId, score } = JSON.parse(event.body);
     
@@ -23,13 +22,13 @@ exports.handler = async (event) => {
 
     if(!card["scoringPlayers"]) {
         card["scoringPlayers"] = [scoringPlayerId];
-        card["score"] = card["score"] ? card["score"] + 1 : 1;
+        card["score"] = card["score"] ? card["score"] + score : 1;
     }
     else {
         const indexOfScoringPlayer = card.scoringPlayers.findIndex(playerId => playerId === scoringPlayerId);
         if(indexOfScoringPlayer > 0) {
             card["scoringPlayers"].push(scoringPlayerId);
-            card["score"] = card["score"] ? card["score"] + 1 : 1;
+            card["score"] = card["score"] ? card["score"] + score : 1;
         }
         else {
             updateScore = false;
@@ -42,11 +41,14 @@ exports.handler = async (event) => {
             Item: gameData.Item
         }
     
-        const resp = await documentClient.put(updateCards).promise();   
+        await documentClient.put(updateCards).promise();   
     }
     
     const response = {
-        statusCode: 200
+        statusCode: 200,
+        headers: {
+            "Access-Control-Allow-Origin": "*"
+        }
     };
     return response;
 };

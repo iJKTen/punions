@@ -2,10 +2,9 @@ const AWS = require('aws-sdk');
 const documentClient = new AWS.DynamoDB.DocumentClient();
 
 exports.handler = async (event) => {
-    
     const {
         pathParameters: { publicGameId }
-    } = event; // Extracting an id from the request path
+    } = event;
     
     const { playerId, cardId } = JSON.parse(event.body);
     
@@ -30,10 +29,13 @@ exports.handler = async (event) => {
         Item: gameData.Item
     }
     
-    const resp = await documentClient.put(updateGame).promise();
+    await documentClient.put(updateGame).promise();
     
     const response = {
-        statusCode: 200
+        statusCode: 200,
+        headers: {
+            "Access-Control-Allow-Origin": "*"
+        }
     };
     return response;
 };

@@ -2,20 +2,19 @@ const AWS = require("aws-sdk");
 const documentClient = new AWS.DynamoDB.DocumentClient();
 
 exports.handler = async (event) => {
-    
     let canGameBegin = false;
     let playing = false;
     
     const {
-        pathParameters: { publicGameId }
-    } = event; // Extracting an id from the request path
+        pathParameters: { gameid }
+    } = event;
     
-    const { playerId } = JSON.parse(event.body);
+    const { playerId } = event;
     
     const params = {
         TableName: "Game",
         Key: { 
-            "PublicGameId": publicGameId
+            "PublicGameId": gameid
         }
     }
     
@@ -44,12 +43,12 @@ exports.handler = async (event) => {
     const data2 = await documentClient.put(paramss).promise();
     
     var lambda = new AWS.Lambda({
-        region: 'ap-northeast-1' //change to your region
+        region: 'ap-northeast-1'
     });
     
     const dataToSend = {
             playerIds: data.Item.players,
-            publicGameId: publicGameId  
+            publicGameId: gameid  
     }
 
     lambda.invoke({
@@ -66,6 +65,9 @@ exports.handler = async (event) => {
     
     const response = {
         statusCode: 200,
+        headers: {
+            "Access-Control-Allow-Origin": "*"
+        },
         body: JSON.stringify(canGameBegin)
     };
     return response;
